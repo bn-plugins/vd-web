@@ -25,7 +25,7 @@ interface PluginManifest {
   }
 }
 
-const base = "https://bunny-mod.github.io/plugins-proxy/plugins-full.json";
+const base = "https://bn-plugins.github.io/vd-proxy/plugins-full.json";
 
 const getPlugins = () =>
   fetch(base)
