@@ -3,7 +3,7 @@ import solidPlugin from "vite-plugin-solid";
 // import devtools from "solid-devtools/vite";
 
 export default defineConfig({
-  base: "/web/",
+  base: "/vd-web/",
   plugins: [
     /* 
     Uncomment the following line to enable solid-devtools.
