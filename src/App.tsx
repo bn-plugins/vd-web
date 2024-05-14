@@ -155,7 +155,7 @@ const App: Component = () => {
       <h1 class={styles.header}>
         Vendetta Plugins
         <div class={styles.notice}>
-          This list is maintained by the <a href="https://github.com/pyoncord">Pyoncord</a> team.<br />
+          This list is maintained by the <a href="https://github.com/pyoncord">Pyoncord</a> team.
         </div>
       </h1>
       <div class={styles.search}>
