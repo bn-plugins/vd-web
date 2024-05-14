@@ -14,35 +14,49 @@ interface PluginManifest {
   authors: Author[];
   main: string;
   hash: string;
-  vendetta?: {
+  vendetta: {
     icon?: string;
     original: string;
   };
   url: string;
+  bunny?: {
+    disabled: boolean;
+    issueNotice: string;
+  }
 }
 
-const base = "https://vd-plugins.github.io/proxy/plugins-full.json";
+const base = "https://bunny-mod.github.io/plugins-proxy/plugins-full.json";
 
 const getPlugins = () =>
   fetch(base)
     .then((r) => r.json())
-    .then((plugins) =>
-      plugins.reverse().map((p: any) => ({
-        ...p,
-        url: new URL(p.vendetta.original, base).href,
-      })),
-    );
+    .then((plugins: PluginManifest[]) => {
+      return plugins.sort((a, b) => {
+        const isAlphabetA = /^[A-Za-z]/.test(a.name);
+        const isAlphabetB = /^[A-Za-z]/.test(b.name);
+
+        if (isAlphabetA && isAlphabetB) {
+          return a.name.localeCompare(b.name);
+        }
+        return isAlphabetA ? -1 : 1;
+      }).map((p) => {
+        return {
+          ...p,
+          url: new URL(p.vendetta.original, base).href,
+        }
+      })
+    });
 
 const fuzzy = <T extends unknown[]>(set: T, search: string) =>
   !search
     ? set
     : (new Fuse(set, {
-        threshold: 0.3,
-        useExtendedSearch: true,
-        keys: ["name", ["authors", "name"]],
-      })
-        .search(search)
-        .map((searchResult) => searchResult.item) as T);
+      threshold: 0.3,
+      useExtendedSearch: true,
+      keys: ["name", ["authors", "name"]],
+    })
+      .search(search)
+      .map((searchResult) => searchResult.item) as T);
 
 const debounce = (fn: (...args: any[]) => any, ms = 1000) => {
   let timeoutId: number;
@@ -52,9 +66,14 @@ const debounce = (fn: (...args: any[]) => any, ms = 1000) => {
   };
 };
 
+const extractRepo = (url: string): string | null => {
+  const matches = url.match(/https\:\/\/bunny-mod\.github\.io\/plugins-proxy\/(.+)\.github\.io\/(.+)\/.+/);
+  return matches ? `${matches[1]}/${matches[2]}` : null;
+}
+
 async function copyText(str: string) {
   try {
-   await navigator.clipboard.writeText(str);
+    await navigator.clipboard.writeText(str);
   } catch {
     const copyArea = document.createElement("textarea");
 
@@ -77,13 +96,38 @@ async function copyText(str: string) {
   }
 }
 
+const InfoRow: Component<{ icon: string, text: string }> = (props) => {
+  return <div class={styles["plugin-info-row"]}>
+    <span class="material-symbols-outlined">
+      {props.icon}
+    </span>
+    {props.text}
+  </div>
+}
+
+const NoticeTop: Component<{ manifest: PluginManifest }> = (props) => {
+  const { disabled, issueNotice: issueDescription } = props.manifest.bunny ?? {};
+  if (!disabled && !issueDescription) return null;
+
+  return <div class={styles["plugin-card-notice"]}>
+    {disabled && <InfoRow icon={"hide_source"} text={"Temporarily disabled by a staff"} />}
+    {issueDescription && <InfoRow icon={"warning"} text={issueDescription} />}
+  </div>
+}
+
 const PluginCard: Component<{ manifest: PluginManifest }> = (props) => {
+  const repo = extractRepo(props.manifest.url);
+
   return (
     <div class={styles.card}>
+      <NoticeTop manifest={props.manifest} />
       <div class={styles.title}>{props.manifest.name}</div>
       <div class={styles.desc}>{props.manifest.description}</div>
       <div class={styles.bottom}>
         <div class={styles.authors}>{props.manifest.authors.map((a: Author) => a.name).join(", ")}</div>
+        {repo && <button onClick={() => open(`https://github.com/${repo}`, '_blank')?.focus()} class={styles.btn}>
+          Visit repo
+        </button>}
         <button onClick={() => copyText(props.manifest.url)} class={styles.btn}>
           Copy link
         </button>
@@ -108,7 +152,12 @@ const App: Component = () => {
 
   return (
     <div>
-      <h1 class={styles.header}>Vendetta plugins</h1>
+      <h1 class={styles.header}>
+        Vendetta Plugins
+        <div class={styles.notice}>
+          This list is maintained by the <a href="https://github.com/pyoncord">Pyoncord</a> team.<br />
+        </div>
+      </h1>
       <div class={styles.search}>
         <input
           placeholder="Search..."
