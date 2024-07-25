@@ -42,7 +42,7 @@ const getPlugins = () =>
       }).map((p) => {
         return {
           ...p,
-          url: new URL(p.vendetta.original, base).href,
+          url: new URL(p.vendetta.original, "https://vd-plugins.github.io/proxy/").href,
         }
       })
     });
@@ -67,7 +67,7 @@ const debounce = (fn: (...args: any[]) => any, ms = 1000) => {
 };
 
 const extractRepo = (url: string): string | null => {
-  const matches = url.match(/https\:\/\/bunny-mod\.github\.io\/plugins-proxy\/(.+)\.github\.io\/(.+)\/.+/);
+  const matches = url.match(/https\:\/\/vd-plugins\.github\.io\/proxy\/(.+)\.github\.io\/(.+)\/.+/);
   return matches ? `${matches[1]}/${matches[2]}` : null;
 }
 
